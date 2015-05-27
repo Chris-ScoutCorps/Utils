@@ -1,0 +1,46 @@
+#!/bin/bash
+
+EMAILDOMAIN="relsci.com"
+
+if [[ $2 = 0000000000000000000000000000000000000000 ]] || [[ $3 = 0000000000000000000000000000000000000000 ]]
+then
+  exit 0
+fi
+
+# get name and email from git log
+EMAILCMD="git log --format="%ce" $3 -1"
+EMAIL=$($EMAILCMD)  
+NAMECMD="git log --format="%cn" $3 -1"
+NAME=$($NAMECMD)
+
+# environment variable for the gitolite user (the SSH key)
+# echo $GL_USER
+
+# compare email with gitolite user
+EXPEMAIL="$GL_USER@$EMAILDOMAIN"
+if [ "{$EXPEMAIL,,}" != "{$EMAIL,,}" ]
+then
+  echo "You're committing with the SSH key for '$GL_USER'. That key belongs to $EXPEMAIL."
+  echo "  (You've configured your email as $EMAIL)"
+  exit 1
+fi
+
+# TODO: maybe, if we ever bother installing mail on this box, send an email to some admins if someone is trying to key share
+
+# check the name...
+IFS=' ' read -ra NAMEPARTS <<< "${NAME,,}"
+PARTCOUNT=0
+for PART in "${NAMEPARTS[@]}"
+do
+  PARTCOUNT=$((PARTCOUNT+1))
+done
+
+# make sure it's a full name
+if (( "$PARTCOUNT" < 2 ))
+then
+  echo "You should put in your full name, $NAME."
+  echo "If you've really only got one name (like Sting or Madonna), email an admin and we can make an exception for you."
+  exit 1
+fi
+
+exit 0 
