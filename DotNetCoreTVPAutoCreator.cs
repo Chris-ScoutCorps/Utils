@@ -160,3 +160,10 @@ namespace MyCompany.Common.Extensions
 
     public class IgnoreInTVPAttribute : Attribute { }
 }
+
+//connection.Open();
+//var com = connection.CreateCommand();
+//com.CommandText = "insert into MyTable select * from @mytvp; select * from MyOtherTable;";
+//com.AddRecordAsDynamicTVP("mytvp", application);
+//var reader = com.ExecuteReader();
+//var data = reader.Parse<MyType>().ToArray();
