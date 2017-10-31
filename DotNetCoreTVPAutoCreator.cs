@@ -29,7 +29,7 @@ namespace MyCompany.Common.Extensions
 
         private static string GetTVPTypeName(Type t)
         {
-            return "TVPAutoCreator_" + t.FullName.Replace('.', '_');
+            return "TVPAutoCreator_" + t.FullName.Replace('.', '_').Replace('+', '_');
         }
 
         private static void EnsureType(Type t, SqlConnection connection)
@@ -156,14 +156,38 @@ namespace MyCompany.Common.Extensions
 
             command.Parameters.Add(p);
         }
+
+        public static string GetTVPColumnList(this Type t)
+        {
+            var names = t.GetProperties()
+                 .Where(p => p.CustomAttributes == null || !p.CustomAttributes.Any(a => a.AttributeType == typeof(IgnoreInTVPAttribute)))
+                 .Select(p => p.Name);
+            return string.Join(',', names);
+        }
     }
 
     public class IgnoreInTVPAttribute : Attribute { }
+
+    //these are just wrappers since Dapper don't handle lists of single values
+    // It makes sense since SQL queries don't actually take/return a list of ints (eg), but a table whose rows have one column that's an int
+    public static class SingleColMapExtensions
+    {
+        public class GuidRow
+        {
+            public Guid Id { get; set; }
+        }
+        public static IEnumerable<GuidRow> AsTVP(this IEnumerable<Guid> items)
+        {
+            return items.Select(i => new GuidRow() { Id = i }).ToArray();
+        }
+    }
 }
 
 //connection.Open();
-//var com = connection.CreateCommand();
-//com.CommandText = "insert into MyTable select * from @mytvp; select * from MyOtherTable;";
-//com.AddRecordAsDynamicTVP("mytvp", application);
+//using (var com = connection.CreateCommand()) {
+//string cols = string.Join(',', typeof(MyType).GetTVPColumnList());
+//com.CommandText = "insert into MyTable (" + cols + ") select * from @mytvp; select * from MyOtherTable;";
+//com.AddRecordsAsDynamicTVP("mytvp", rows); //com.AddRecordAsDynamicTVP("mytvp", row);
 //var reader = com.ExecuteReader();
 //var data = reader.Parse<MyType>().ToArray();
+//}
