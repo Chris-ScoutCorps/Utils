@@ -162,8 +162,9 @@ namespace MyCompany.Common.Extensions
 }
 
 //connection.Open();
-//var com = connection.CreateCommand();
+//using (var com = connection.CreateCommand()) {
 //com.CommandText = "insert into MyTable select * from @mytvp; select * from MyOtherTable;";
-//com.AddRecordAsDynamicTVP("mytvp", application);
+//com.AddRecordsAsDynamicTVP("mytvp", rows); //com.AddRecordAsDynamicTVP("mytvp", row);
 //var reader = com.ExecuteReader();
 //var data = reader.Parse<MyType>().ToArray();
+//}
